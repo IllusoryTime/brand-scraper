@@ -1,6 +1,5 @@
 import uuid
 
-from django.core.validators import URLValidator
 from django.db import models
 
 
@@ -13,7 +12,7 @@ class WebPage(models.Model):
 class ImageMetadata(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     web_page = models.ForeignKey(
-        to=WebPage, on_delete=models.SET_NULL, null=True),
+        to=WebPage, on_delete=models.SET_NULL, null=True)
     image_url = models.URLField()
     file_name = models.CharField(max_length=255)
     height = models.FloatField()
