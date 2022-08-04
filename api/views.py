@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.response import Response
 from scrapyd_api import ScrapydAPI
+from url_normalize import url_normalize
 
 from api.models import ImageMetadata
 from api.serializers import WebPageSerializer, ImageMetadataSerializer
@@ -18,7 +19,7 @@ class ImageScrapperAPIView(generics.CreateAPIView):
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
-            url = serializer.validated_data['url']
+            url = url_normalize(serializer.validated_data['url'])
             domain = urlparse(url).netloc
             task = scrapyd.schedule('default', 'image', url=url, domain=domain)
 
