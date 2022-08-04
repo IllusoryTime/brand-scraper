@@ -27,12 +27,17 @@ class ImageScrapperAPIView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ImageMetadataDetailByIDAPIView(generics.RetrieveAPIView):
+class ImageMetadataListAPIView(generics.ListAPIView):
     queryset = ImageMetadata.objects.all()
     serializer_class = ImageMetadataSerializer
 
 
-class ImageMetadataDetailByURLAPIView(generics.RetrieveAPIView):
+class ImageMetadataByIDRetrieveAPIView(generics.RetrieveAPIView):
+    queryset = ImageMetadata.objects.all()
+    serializer_class = ImageMetadataSerializer
+
+
+class ImageMetadataByURLRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ImageMetadataSerializer
 
     def get_object(self):
