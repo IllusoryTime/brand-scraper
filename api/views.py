@@ -1,9 +1,30 @@
-from django.http import FileResponse
+from urllib.parse import urlparse
+
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, views
+from rest_framework import generics, status
+from rest_framework.response import Response
+from scrapyd_api import ScrapydAPI
 
 from api.models import ImageMetadata
-from api.serializers import ImageMetadataSerializer
+from api.serializers import WebPageSerializer, ImageMetadataSerializer
+
+scrapyd = ScrapydAPI('http://localhost:6800')
+
+
+class ImageScrapperAPIView(generics.CreateAPIView):
+    serializer_class = WebPageSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+
+        if serializer.is_valid():
+            url = serializer.validated_data['url']
+            domain = urlparse(url).netloc
+            task = scrapyd.schedule('default', 'image', url=url, domain=domain)
+
+            return Response({'task_id': task, 'status': 'started'}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ImageMetadataDetailByIDAPIView(generics.RetrieveAPIView):
