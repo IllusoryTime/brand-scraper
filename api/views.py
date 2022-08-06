@@ -38,6 +38,11 @@ class ImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImageMetadata.objects.all()
 
     def list(self, request, *args, **kwargs):
+        """
+        If no url query parameter is passed we are sending all the records.
+        Because in standard GET API data should always be sent. Query parameters are used for filtering.
+        """
+        
         url = request.GET.get('url', None)
         size = request.GET.get('size', None)
 
@@ -46,14 +51,14 @@ class ImageViewSet(viewsets.ReadOnlyModelViewSet):
             file_names = ImageMetadata.objects \
                 .filter(web_page__url__iexact=normalized_url) \
                 .values_list('file_name', flat=True)
+        else:
+            file_names = ImageMetadata.objects.values_list('file_name', flat=True)
 
-            try:
-                image_data = [self.get_image_data(file_name, size) for file_name in file_names]
-                return Response(image_data, status=status.HTTP_200_OK)
-            except():
-                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        try:
+            image_data = [self.get_image_data(file_name, size) for file_name in file_names]
+            return Response(image_data, status=status.HTTP_200_OK)
+        except():
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def retrieve(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
