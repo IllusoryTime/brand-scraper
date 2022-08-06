@@ -1,5 +1,9 @@
+import base64
+import os
+from io import BytesIO
 from urllib.parse import urlparse
 
+from PIL import Image
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from rest_framework import generics, status, viewsets
@@ -30,9 +34,59 @@ class ImageScrapperAPIView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ImageMetadataListAPIView(generics.ListAPIView):
+class ImageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ImageMetadata.objects.all()
-    serializer_class = ImageMetadataSerializer
+
+    def list(self, request, *args, **kwargs):
+        url = request.GET.get('url', None)
+        size = request.GET.get('size', None)
+
+        if url:
+            normalized_url = url_normalize(url)
+            file_names = ImageMetadata.objects \
+                .filter(web_page__url__iexact=normalized_url) \
+                .values_list('file_name', flat=True)
+
+            try:
+                image_data = [self.get_image_data(file_name, size) for file_name in file_names]
+                return Response(image_data, status=status.HTTP_200_OK)
+            except():
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        size = request.GET.get('size', None)
+
+        if not is_valid_uuid(pk):
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        image_metadata = get_object_or_404(ImageMetadata, pk=pk)
+
+        try:
+            image_data = self.get_image_data(image_metadata.file_name, size)
+            return Response(image_data, status=status.HTTP_200_OK)
+        except():
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @staticmethod
+    def get_image_data(file_name, size=None):
+        image_path = os.path.abspath(os.getcwd()) + static(file_name)
+        image = Image.open(image_path)
+
+        if size:
+            size_dict = {"small": 256, "medium": 1024, "large": 2048}
+            width = size_dict.get(size.lower(), None)
+
+            if width:
+                image.thumbnail((size, image.height), Image.ANTIALIAS)
+
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        image_data = base64.b64encode(buffered.getvalue())
+
+        return image_data
 
 
 class ImageMetadataViewSet(viewsets.ReadOnlyModelViewSet):
