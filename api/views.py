@@ -4,6 +4,7 @@ from io import BytesIO
 from urllib.parse import urlparse
 
 from PIL import Image
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from rest_framework import status, viewsets, mixins
@@ -15,7 +16,7 @@ from api.models import ImageMetadata
 from api.serializers import WebPageSerializer, ImageMetadataSerializer
 from api.utils import is_valid_uuid
 
-scrapyd = ScrapydAPI('http://localhost:6800')
+scrapyd = ScrapydAPI(settings.SCRAPYD_SERVER)
 
 
 class ImageScraperViewSet(mixins.CreateModelMixin,
