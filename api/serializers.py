@@ -1,4 +1,3 @@
-from django.templatetags.static import static
 from rest_framework import serializers
 
 from api.models import WebPage, ImageMetadata
@@ -22,7 +21,3 @@ class ImageMetadataSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'file_size': {'coerce_to_string': False}
         }
-
-    @staticmethod
-    def get_image_url(obj):
-        return static(obj.file_name)
