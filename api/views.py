@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from PIL import Image
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
-from rest_framework import generics, status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.response import Response
 from scrapyd_api import ScrapydAPI
 from url_normalize import url_normalize
@@ -18,10 +18,11 @@ from api.utils import is_valid_uuid
 scrapyd = ScrapydAPI('http://localhost:6800')
 
 
-class ImageScrapperAPIView(generics.CreateAPIView):
+class ImageScraperViewSet(mixins.CreateModelMixin,
+                          viewsets.GenericViewSet):
     serializer_class = WebPageSerializer
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
@@ -42,7 +43,7 @@ class ImageViewSet(viewsets.ReadOnlyModelViewSet):
         If no url query parameter is passed we are sending all the records.
         Because in standard GET API data should always be sent. Query parameters are used for filtering.
         """
-        
+
         url = request.GET.get('url', None)
         size = request.GET.get('size', None)
 
