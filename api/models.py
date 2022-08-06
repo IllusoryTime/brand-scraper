@@ -15,4 +15,6 @@ class ImageMetadata(models.Model):
     height = models.IntegerField()
     width = models.IntegerField()
     scrape_date = models.DateField()
-    file_size = models.DecimalField(max_digits=8, decimal_places=2, )
+    file_size = models.DecimalField(max_digits=8, decimal_places=2)
+    mode = models.CharField(max_length=32)
+    format = models.CharField(max_length=32)

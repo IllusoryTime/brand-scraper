@@ -13,7 +13,7 @@ class ScraperPipeline(ImagesPipeline):
         Here we are processing the images downloaded by Scrapy image pipeline.
         We extract image metadata and save it to database.
         """
-        
+
         webpage, created = WebPage.objects.get_or_create(url=spider.start_urls[0])
 
         if not created:
@@ -30,13 +30,13 @@ class ScraperPipeline(ImagesPipeline):
 
                 image_metadata = ImageMetadata(
                     web_page=webpage,
-                    image_url='google.com',
                     file_name=image_path,
                     height=image.height,
                     width=image.width,
                     scrape_date=datetime.date.today(),
-                    file_size=os.path.getsize(relative_path) / 1024.0
-                    # TODO: Add more property
+                    file_size=os.path.getsize(relative_path) / 1024.0,
+                    mode=image.mode,
+                    format=image.format
                 )
 
                 image_metadata_list.append(image_metadata)

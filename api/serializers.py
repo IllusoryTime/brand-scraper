@@ -15,7 +15,6 @@ class WebPageSerializer(serializers.ModelSerializer):
 
 class ImageMetadataSerializer(serializers.ModelSerializer):
     web_page = serializers.CharField(source='web_page.url')
-    image_url = serializers.SerializerMethodField()  # TODO: Come back to here
 
     class Meta:
         model = ImageMetadata
