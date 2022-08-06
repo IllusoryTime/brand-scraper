@@ -80,7 +80,10 @@ class ImageViewSet(viewsets.ReadOnlyModelViewSet):
             width = size_dict.get(size.lower(), None)
 
             if width:
-                image.thumbnail((size, image.height), Image.ANTIALIAS)
+                # Image can not be upscaled according to the requirement. So the maximum height can be the image's
+                # original height. The image.thumbnail method maintained the aspect ratio by default.
+                # Also, image.thumbnail do not modify the image if the size is greater than the original.
+                image.thumbnail((width, image.height), Image.ANTIALIAS)
 
         buffered = BytesIO()
         image.save(buffered, format="JPEG")
