@@ -15,17 +15,23 @@ python -m venv venv
 3 - Activate the virtual environment
 
 ```
-venv/scripts/activate # Windows
+venv\Scripts\activate # Windows
 source venv/bin/activate # MacOS/Linux
 ```
 
-4 - Install requirements
+4 - Change the current working directory
+
+```
+cd brand-scraper
+```
+
+5 - Install requirements
 
 ````
 pip install -r requirements.txt
 ````
 
-5 - Configure the database
+6 - Configure the database
 
 ````
 python manage.py migrate
@@ -39,18 +45,17 @@ at the same time.
 To run Django
 
 ````
-$ python manage.py runserver
+python manage.py runserver
 ````
 
 To run Scrapyd
 
 ````
-$ cd scraper
-$ scrapyd
+cd scraper
+scrapyd
 ````
 
-Django is running on: http://127.0.0.1:8000
-Scrapyd is running on: http://localhost:6800
+Django is running on: http://127.0.0.1:8000. Scrapyd is running on: http://localhost:6800
 
 ## Architectural Decisions Behind Choosing Scrapy
 
@@ -75,16 +80,21 @@ process behind choosing Scrapy is described below:
 2. Introduce logging for better debugging and issue investigation.
 3. Add testing coverage in critical areas like image scraping, downloading, and thumbnail generation.
 4. API documentation using Swagger.
-5. Introduce Types throughout the project, this is optional but good to have.
+5. Use Static Typing throughout the project, this is optional but good to have.
 6. Use an S3 bucket for storing images instead local server.
+7. Add Authentication/Authorization.
+8. Generate thumbnail of frequently queried images and serve them via CDN i.e, CloudFront.
+9. Implement a webhook to notify users when scraping is completed.
+10. Most popular websites have anti-bot mechanisms enabled which make scraping harder. Implement a custom rotating proxy
+    and user agent through Scrapy middleware to bypass this.
 
 ## API Documentation
 
 ### `POST: /scrape_image/`
 
-Takes an URL, and returns the `task_id` and `status`. Note that this API doesn't wait for scaping to be finished.
-Scraping will run in the background and after finishing image will be stored in the local server and metadata will be
-sotted in the database.
+Takes an URL, and returns the `task_id` and `status`. Note that this API doesn't wait for scraping to be finished.
+Scraping will run in the background and after finishing images will be stored in the local server and metadata will be
+stored in the database.
 
 #### Payload
 
@@ -184,8 +194,8 @@ Example: `/image/34acb4e1-5209-4d4d-be25-3c64dd1bbe1c`
 
 ### `GET: /image?url=<ORIGINAL_URL>&size=<'small'|'medium'|'large'>`
 
-Returns a list of image metadata if ORIGINAL_URL (URL that was used to scrape images) is mathced in the database. An
-optional query parameter `size` can be sent.
+Returns a list of image base64 string if ORIGINAL_URL (URL that was used to scrape images) is mathced in the database.
+An optional query parameter `size` can be sent.
 
 Example: `/image/?url=https://en.wikipedia.org/wiki/Main_Page&size=small`
 
